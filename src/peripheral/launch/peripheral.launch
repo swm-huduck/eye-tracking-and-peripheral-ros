@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="peripheral" type="peripheral" name ="peripheral" output="screen"/>
+    <include file="$(find receiver_test)/launch/receiver_test.launch"/>
+</launch>

@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="receiver_test" type="receiver_test" name ="receiver_test" output="screen">
+    </node>
+</launch>

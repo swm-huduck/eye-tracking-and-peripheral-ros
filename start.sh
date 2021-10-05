@@ -8,8 +8,9 @@ echo ''
 
 echo 'bluetooth_setting'
 {
-    sudo cp -f ./adv_min_interval /sys/kernel/debug/bluetooth/hci0/adv_min_interval
-    sudo cp -f ./adv_max_interval /sys/kernel/debug/bluetooth/hci0/adv_max_interval
+    sudo cp -f ./setting_file/huduck.conf /etc/dbus-1/system.d/huduck.conf 
+    sudo cp -f ./setting_file/adv_min_interval /sys/kernel/debug/bluetooth/hci0/adv_min_interval
+    sudo cp -f ./setting_file/adv_max_interval /sys/kernel/debug/bluetooth/hci0/adv_max_interval
 
     sudo btmgmt -i hci0 power off;
 

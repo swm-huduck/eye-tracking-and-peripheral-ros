@@ -92,6 +92,7 @@
 // required by applications linking to a Gobbledegook library is to include `include/Gobbledegook.h`.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#include <stdlib.h>
 #include <signal.h>
 #include <iostream>
 #include <thread>
@@ -134,6 +135,8 @@ static uint8_t serverDataBatteryLevel = 78;
 
 // The text string ("text/string") used by our custom text string service (see Server.cpp)
 static std::string serverDataTextString = "Hello, world!";
+
+static int mtu = 20;
 
 //
 // Logging
@@ -227,6 +230,9 @@ const void *dataGetter(const char *pName)
 	else if (strName == "text/string")
 	{
 		return serverDataTextString.c_str();
+	}
+	else if (strName == "mtu") {
+		return &mtu;
 	}
 
 	LogWarn((std::string("Unknown name for server data getter request: '") + pName + "'").c_str());
@@ -343,6 +349,11 @@ int dataSetter(const char *pName, const void *pData)
 			std::string value = serverDataTextString.substr(separatorIndex + 2, len - separatorIndex);
 			LogDebug((std::string("Server data: (Setting) item: ") + item + ", value: " + value).c_str());
 
+			if(item == "mtu") {
+				mtu = atoi(value.c_str());
+				LogDebug(std::string("Server data: (MTU) value: " + value).c_str());
+			}
+
 			while(ros::ok()) {
 				peripheral::setting s;
 				s.item = item;
@@ -440,7 +451,7 @@ int main(int argc, char **ppArgv)
 	//     This first parameter (the service name) must match tha name configured in the D-Bus permissions. See the Readme.md file
 	//     for more information.
 	//
-	if (!ggkStart("gobbledegook", "gobbledegook", "gobbledegook", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
+	if (!ggkStart("huduck", "HUDuck-001", "HUDuck-001", dataGetter, dataSetter, kMaxAsyncInitTimeoutMS))
 	{
 		return -1;
 	}

@@ -148,6 +148,7 @@
 //     https://www.freedesktop.org/software/gstreamer-sdk/data/docs/latest/glib/glib-GVariantType.html
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+#include <ros/ros.h>
 #include <vector>
 #include <queue>
 #include <algorithm>
@@ -410,15 +411,22 @@ Server::Server(const std::string &serviceName, const std::string &advertisingNam
 				// std::cout << "AA" << (int)array[0] << "AA";
 				
 				q.push(array);
-
+				
+				// Time log
+				ros::Time stamp = ros::Time::now();
+				std::stringstream ss;
+				ss << "Time: " << stamp.sec << "." << stamp.nsec;
+				std::cerr << ss.str() << "\n";
 
 				if((int)array[0] == 1) {
+					int mtu = self.getDataValue<int>("mtu", 0);
+
 					int qsize = q.size();
-					std::vector<gchar> result(qsize * 19 + 1);
+					std::vector<gchar> result(qsize * (mtu - 1) + 1);
 					int idx = 0;
 					for(int i = 0; i < qsize; i++) {
 						std::vector<gchar> v = q.front();
-						for(int j = 1; j < 20; j++) {
+						for(int j = 1; j < mtu; j++) {
 							result[idx++] = v[j];
 						}
 						q.pop();

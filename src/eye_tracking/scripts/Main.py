@@ -7,6 +7,8 @@ import numpy as np
 import cv2
 import dlib
 import glob
+import rospy
+from eye_tracking.msg import eye_position
 
 from FpsManager import FpsManager
 from CalibrationManager import CalibrationManager
@@ -80,6 +82,13 @@ capture.set(cv2.CAP_PROP_FRAME_WIDTH, ORIGIN_FRAME_WIDTH)
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, ORIGIN_FRAME_HEIGHT)
 capture.set(cv2.CAP_PROP_FPS, TARGET_FPS)
 
+# ROS
+PUBLISHER_NAME = "eye_position"
+PUBLISHER = rospy.Publisher(PUBLISHER_NAME, eye_position, queue_size=10)
+rospy.init_node('eye_position', anonymous=True)
+PUBLISHER_RATE = rospy.Rate(30)
+
+# Main Loop
 def mainLoop():
     global perspectiveTransformManager
 
@@ -125,8 +134,14 @@ def mainLoop():
 
             # Calculate eye position
             eyePositionOnBoard = eyePositionCalculator.calc(points, debugFrame=frame)
+            (eyePositionX, eyePositionY) = eyePositionOnBoard
 
             # print(eyePositionOnBoard)
+            if not rospy.is_shutdown():
+                msg = eye_position()
+                msg.x = eyePositionX
+                msg.y = eyePositionY
+                PUBLISHER.publish(msg)
 
         # Update fps
         fpsManager.updateFps()

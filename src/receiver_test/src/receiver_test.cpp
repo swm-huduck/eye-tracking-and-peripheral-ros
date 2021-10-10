@@ -7,6 +7,8 @@
 #include "peripheral/sms.h"
 #include "peripheral/kakao_talk.h"
 
+#include "eye_tracking/eye_position.h"
+
 void SpeedCallback(const peripheral::speed& data) {
     ROS_INFO("[SpeedCallback] value: %d",  data.value);
 }
@@ -31,7 +33,9 @@ void KakaoTalkCallback(const peripheral::kakao_talk& data) {
     ROS_INFO("[KakaoTalkCallback] name: %s, content: %s", data.name.c_str(), data.content.c_str());
 }
 
-
+void EyePositionCallback(const eye_tracking::eye_position& data) {
+    ROS_INFO("[EyePositionCallback] position: (%d, %d)", data.x, data.y);
+}
 
 int main(int argc, char **argv) {
     setlocale( LC_ALL, "" );
@@ -50,6 +54,8 @@ int main(int argc, char **argv) {
     ros::Subscriber subscriber4 = nh.subscribe("call", 10, CallCallback);
     ros::Subscriber subscriber5 = nh.subscribe("sms", 10, SmsCallback);
     ros::Subscriber subscriber6 = nh.subscribe("kakao_talk", 10, KakaoTalkCallback);
+
+    ros::Subscriber subscriber7 = nh.subscribe("eye_position", 10, EyePositionCallback);
 
     ros::spin();
 }

@@ -1,4 +1,8 @@
 {
+    "python.pythonPath": "C:/Python39/python.exe",
+    "python.autoComplete.addBrackets": true,
+    "python.jediEnabled": true,
+
     "files.associations": {
         "cctype": "cpp",
         "clocale": "cpp",
@@ -59,5 +63,7 @@
         "cfenv": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp"
-    }
+    },
+    "python.analysis.completeFunctionParens": true,
+    "python.languageServer": "Jedi"
 }

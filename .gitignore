@@ -1,4 +1,7 @@
-build
-devel
-gitignore
+/build
+/devel
+.gitignore
 .catkin_workspace
+.vscode
+.vscode/*
+__pycache__

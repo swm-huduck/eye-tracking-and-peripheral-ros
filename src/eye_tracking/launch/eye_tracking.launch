@@ -1,3 +1,3 @@
 <launch>
-    <node pkg="eye_tracking" type="Main.py" name ="Main" output="screen"/>
+    <node pkg="eye_tracking" type="eye_tracking_main.py" name ="eye_tracking" output="screen" args="ROS"/>
 </launch>

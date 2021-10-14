@@ -8,47 +8,60 @@ import cv2
 import dlib
 import glob
 import rospy
-from eye_tracking.msg import eye_position
+import multiprocessing
+import ctypes
 
 from FpsManager import FpsManager
 from CalibrationManager import CalibrationManager
 from PerspectiveTransformManager import PerspectiveTransformManager
+from BoardEdgeManager import BoardEdgeManager
 
 from FaceDetector import FaceDetector
 from LandmarkDetector import LandmarkDetector
 
 from EyePositionCalculator import EyePositionCalculator
 
+from Log import Log
 
 # Constant
 MY_PATH = "/home/park/gobbledegook-1.01/src/eye_tracking/scripts/"
 
-CAM_INDEX = 0
+# Run with ROS
+RUN_WITH_ROS = True
 
+if len(sys.argv) >= 2 and sys.argv[1] == "ROS":
+    from eye_tracking.msg import eye_position
+else:
+    RUN_WITH_ROS = False
+    MY_PATH = "./"
+    
+# Camera
+CAM_INDEX = 0
 ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT = 1280, 720
 TARGET_FPS = 60
+capture = cv2.VideoCapture(CAM_INDEX)
+capture.set(cv2.CAP_PROP_FRAME_WIDTH, ORIGIN_FRAME_WIDTH)
+capture.set(cv2.CAP_PROP_FRAME_HEIGHT, ORIGIN_FRAME_HEIGHT)
+capture.set(cv2.CAP_PROP_FPS, TARGET_FPS)
 
-BOARD_SCALE = 0.8
-BOARD_WIDTH, BOARD_HEIGHT = 790, 1090
-
-BOARD_POINTS = (
-    (566, 50),
-    (1027, 31),
-    (564, 654),
-    (1021, 676),
-)
-
-RESIZE_SCALE = 0.1
-
-FRAME_WIDTH, FRAME_HEIGHT = int(BOARD_WIDTH * BOARD_SCALE),int(BOARD_HEIGHT * BOARD_SCALE)
-
-# Manager
+# FPS
 fpsManager = FpsManager()
-calibrationManager = CalibrationManager(glob.glob(MY_PATH + 'CalibrationImage/*.jpg'), ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT)
+
+# Calibaration
+calibrationManager = CalibrationManager(glob.glob(MY_PATH + "CalibrationImage/*.jpg"), ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT)
+
+# Perspective Transform
+boardEdgeManager = BoardEdgeManager(MY_PATH + "setting.ini")
+BOARD_POINTS = boardEdgeManager.getBoardEdgePostionArr()
+(BOARD_WIDTH, BOARD_HEIGHT) = boardEdgeManager.getBoardSize()
+BOARD_SCALE = 0.8
+FRAME_WIDTH, FRAME_HEIGHT = int(float(BOARD_WIDTH) * BOARD_SCALE), int(float(BOARD_HEIGHT) * BOARD_SCALE) # final frame size
+
 perspectiveTransformManager = PerspectiveTransformManager(BOARD_POINTS, FRAME_WIDTH, FRAME_HEIGHT)
 
 # Face Detector
 CASCADE = cv2.CascadeClassifier(MY_PATH + "AddOn/haarcascade_frontalface_default.xml")
+RESIZE_SCALE = 0.1
 faceDetector = FaceDetector(CASCADE, RESIZE_SCALE)
 
 # Landmark Detector
@@ -70,27 +83,25 @@ eyePositionCalculator = EyePositionCalculator(FRAME_WIDTH, FRAME_HEIGHT, BOARD_W
 # Window
 mainWindowName = "main"
 cv2.namedWindow(mainWindowName, cv2.WINDOW_NORMAL)
-def printMousePos(event, x, y, f, a):
-    if event == cv2.EVENT_LBUTTONDOWN:
-        print(f"{x}, {y}")
-
-cv2.setMouseCallback(mainWindowName, printMousePos)
-
-# Capture
-capture = cv2.VideoCapture(CAM_INDEX)
-capture.set(cv2.CAP_PROP_FRAME_WIDTH, ORIGIN_FRAME_WIDTH)
-capture.set(cv2.CAP_PROP_FRAME_HEIGHT, ORIGIN_FRAME_HEIGHT)
-capture.set(cv2.CAP_PROP_FPS, TARGET_FPS)
 
 # ROS
-PUBLISHER_NAME = "eye_position"
-PUBLISHER = rospy.Publisher(PUBLISHER_NAME, eye_position, queue_size=10)
-rospy.init_node('eye_position', anonymous=True)
-PUBLISHER_RATE = rospy.Rate(30)
+def publish(eyePosition):
+    PUBLISHER_NAME = "eye_position"
+    publisher = rospy.Publisher(PUBLISHER_NAME, eye_position, queue_size=10)
+    rospy.init_node('eye_position', anonymous=True)
+    publisher_rate = rospy.Rate(30)
 
+    msg = eye_position()
+    while not rospy.is_shutdown():
+        msg.x = eyePosition[0]
+        msg.y = eyePosition[1]
+        publisher.publish(msg)
+        publisher_rate.sleep()
+    
 # Main Loop
-def mainLoop():
+def mainLoop(eyePosition):
     global perspectiveTransformManager
+    SHOW_RESULT = True
 
     while True:
         # Read frame
@@ -134,14 +145,15 @@ def mainLoop():
 
             # Calculate eye position
             eyePositionOnBoard = eyePositionCalculator.calc(points, debugFrame=frame)
-            (eyePositionX, eyePositionY) = eyePositionOnBoard
+            eyePosition[0] = eyePositionOnBoard[0]
+            eyePosition[1] = eyePositionOnBoard[1]
+            # (eyeX, eyePositionY) = eyePositionOnBoard
+            # eyePosition[0] = eyePositionX
+            # eyePosition[1] = eyePositionY
+            break
 
-            # print(eyePositionOnBoard)
-            if not rospy.is_shutdown():
-                msg = eye_position()
-                msg.x = eyePositionX
-                msg.y = eyePositionY
-                PUBLISHER.publish(msg)
+        # Draw board's edge
+        boardEdgeManager.drawBoardEnge(calFrame)
 
         # Update fps
         fpsManager.updateFps()
@@ -149,26 +161,45 @@ def mainLoop():
         cv2.putText(frame, f"FPS: {fps}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
         # Show frame
-        cv2.imshow(mainWindowName, frame)
-        cv2.imshow("resizedGrayFrame", resizedGrayFrame)
+        if SHOW_RESULT:
+            cv2.imshow(mainWindowName, frame)
 
         # Wait
         inputKey = cv2.waitKey(1)
         
         # Key event
         if inputKey == ord('q'):
-            break
+            SHOW_RESULT = not SHOW_RESULT
 
-        elif inputKey == ord('p'):
-            # Find board from calFrame
-            perspectiveTransformManager = PerspectiveTransformManager(points, BOARD_WIDTH, BOARD_HEIGHT)
+        elif inputKey == ord('s'):
+            targetModeState = not boardEdgeManager.getSettingMode()
+            boardEdgeManager.setSettingMode(targetModeState)
 
-if __name__ == "__main__":
-    MY_PATH = "./"
+            if not targetModeState:
+                BOARD_POINTS = boardEdgeManager.getBoardEdgePostionArr()
+                perspectiveTransformManager.setPoints(BOARD_POINTS)
+                        
 
-os.system("v4l2-ctl -d 0 --set-ctrl exposure_auto_priority=0")
+os.system(f"v4l2-ctl -d {CAM_INDEX} --set-ctrl exposure_auto_priority=0")
 
-mainLoop()
+def onRosShutdown():
+    Log.d("ROS Shutdown", "SHUTDOWN!")
+    cv2.destroyAllWindows()
+    sys.exit()
+rospy.on_shutdown(onRosShutdown)
 
-cv2.destroyAllWindows()
-sys.exit()
+multiprocessingManager = multiprocessing.Manager()
+eyePosition = multiprocessingManager.list()
+eyePosition.append(0)
+eyePosition.append(0)
+
+p2 = multiprocessing.Process(target=mainLoop, args=[eyePosition])
+p2.start()
+
+if RUN_WITH_ROS:
+    p1 = multiprocessing.Process(target=publish, args=[eyePosition])
+    p1.start()
+    p1.join()
+p2.join()
+
+# mainLoop()

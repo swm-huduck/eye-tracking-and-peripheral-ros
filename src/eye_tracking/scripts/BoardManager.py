@@ -3,14 +3,17 @@ import configparser
 import numpy
 import cv2
 
-class BoardEdgeManager:
+class BoardManager:
     def __init__(self, iniFilePath):
         self._iniFilePath = iniFilePath
         self._config = configparser.ConfigParser()
         
         self._settingMode = False
         self._selectedEdge = None
-
+        
+        self._settingModeFramePause = False
+        self._pauseFrame = None
+        
         self._readIniFile()
 
     def _readIniFile(self):
@@ -52,8 +55,11 @@ class BoardEdgeManager:
         if bool:
             cv2.namedWindow("board_setting", cv2.WINDOW_NORMAL)
             cv2.setMouseCallback("board_setting", self._mouseCallback)
+            
         else:
             cv2.destroyWindow("board_setting")
+            self._pauseFrame = None
+            self._settingModeFramePause = False
 
     def getSettingMode(self):
         return self._settingMode
@@ -64,8 +70,14 @@ class BoardEdgeManager:
     def drawBoardEnge(self, frame):
         if not self._settingMode:
             return
+        
+        self._frame = frame.copy()
 
-        frame = frame.copy()
+        if self._settingModeFramePause:
+            frame = self._pauseFrame.copy()
+        else:
+            frame = frame.copy()
+
         cv2.line(frame, tuple(self._top_left),      tuple(self._top_right),     (0, 0, 255))
         cv2.line(frame, tuple(self._top_right),     tuple(self._bottom_right),  (0, 0, 255))
         cv2.line(frame, tuple(self._bottom_right),  tuple(self._bottom_left),   (0, 0, 255))
@@ -75,6 +87,14 @@ class BoardEdgeManager:
             cv2.circle(frame, tuple(egde), 2, (0, 0, 255))
 
         cv2.imshow("board_setting", frame)
+
+    def pause(self):
+        if not self.getSettingMode():
+            return
+
+        self._settingModeFramePause = not self._settingModeFramePause
+        if self._settingModeFramePause:
+            self._pauseFrame = self._frame
 
     def _mouseCallback(self, event, x, y, flags, userdata):
         if not self._settingMode:
@@ -91,10 +111,10 @@ class BoardEdgeManager:
 
         elif event == cv2.EVENT_LBUTTONUP:
             self._selectedEdge = None
+            self._writeIniFile()
 
         elif event == cv2.EVENT_MOUSEMOVE and self._selectedEdge is not None:
             self._selectedEdge[0] = x
             self._selectedEdge[1] = y
-            self._writeIniFile()
             
         

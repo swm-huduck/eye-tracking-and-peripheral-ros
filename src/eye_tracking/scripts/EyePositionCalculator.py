@@ -1,8 +1,9 @@
+import configparser
 import cv2
 import numpy
 
 class EyePositionCalculator:
-    def __init__(self, frameWidth, frameHeight, boardWidth, boardHeight, eyePositionIndexes):
+    def __init__(self, frameWidth, frameHeight, boardWidth, boardHeight, eyePositionIndexes, iniFilePath):
         self._frameWidth = frameWidth
         self._frameHeight = frameHeight
         self._boardWidth = boardWidth
@@ -10,9 +11,38 @@ class EyePositionCalculator:
         self._boardPerFrame = boardWidth / frameWidth
         self._eyePositionIndexes = eyePositionIndexes
 
+        self._config = configparser.ConfigParser()
+        self._iniFilePath = iniFilePath;
+        self._readIniFile()
 
-    def _debug(self, debugFrame):
-        pass
+    def _readIniFile(self):
+        self._config.read(self._iniFilePath)
+
+        origin_eye_position = self._config["origin_eye_position"]
+        self._origin_eye_position_x = int(origin_eye_position["x"])
+        self._origin_eye_position_y = int(origin_eye_position["y"])
+
+    def _writeIniFile(self):
+        origin_eye_position = self._config["origin_eye_position"]
+        origin_eye_position["x"] = str(self._origin_eye_position_x)
+        origin_eye_position["y"] = str(self._origin_eye_position_y)
+
+        with open(self._iniFilePath, 'w') as  configfile:
+            self._config.write(configfile)
+
+    def getOriginEyePosition(self):
+        return numpy.array((self._origin_eye_position_x, self._origin_eye_position_y))
+
+
+    def setOriginEyePosition(self, originEyePosition):
+        if int(originEyePosition[0]) == 0 and int(originEyePosition[1]) == 0:
+            return
+
+        origin_eye_position = self._config["origin_eye_position"]
+        self._origin_eye_position_x = int(round(originEyePosition[0], 0))
+        self._origin_eye_position_y = int(round(originEyePosition[1], 0))
+
+        self._writeIniFile()
 
     def _drawEye(self, pos1, pos2, center, frame):
         pos1 = tuple(pos1.astype(int))
@@ -55,4 +85,5 @@ class EyePositionCalculator:
             self._drawEye(leftEyeOutSidePos, leftEyeInSidePos, leftEyeCenterPos, debugFrame)
             self._drawEye(rightEyeOutSidePos, rightEyeInSidePos, rightEyeCenterPos, debugFrame)
             self._drawEyeCenter(eyeCenterPos, result, debugFrame)
+
         return result

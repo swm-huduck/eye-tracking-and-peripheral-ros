@@ -14,7 +14,7 @@ import ctypes
 from FpsManager import FpsManager
 from CalibrationManager import CalibrationManager
 from PerspectiveTransformManager import PerspectiveTransformManager
-from BoardEdgeManager import BoardEdgeManager
+from BoardManager import BoardManager
 
 from FaceDetector import FaceDetector
 from LandmarkDetector import LandmarkDetector
@@ -36,10 +36,11 @@ else:
     MY_PATH = "./"
     
 # Camera
-CAM_INDEX = 0
+CAM_INDEX = 2
 ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT = 1280, 720
 TARGET_FPS = 60
 capture = cv2.VideoCapture(CAM_INDEX)
+capture.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*"MJPG"))
 capture.set(cv2.CAP_PROP_FRAME_WIDTH, ORIGIN_FRAME_WIDTH)
 capture.set(cv2.CAP_PROP_FRAME_HEIGHT, ORIGIN_FRAME_HEIGHT)
 capture.set(cv2.CAP_PROP_FPS, TARGET_FPS)
@@ -51,9 +52,9 @@ fpsManager = FpsManager()
 calibrationManager = CalibrationManager(glob.glob(MY_PATH + "CalibrationImage/*.jpg"), ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT)
 
 # Perspective Transform
-boardEdgeManager = BoardEdgeManager(MY_PATH + "setting.ini")
-BOARD_POINTS = boardEdgeManager.getBoardEdgePostionArr()
-(BOARD_WIDTH, BOARD_HEIGHT) = boardEdgeManager.getBoardSize()
+boardManager = BoardManager(MY_PATH + "setting.ini")
+BOARD_POINTS = boardManager.getBoardEdgePostionArr()
+(BOARD_WIDTH, BOARD_HEIGHT) = boardManager.getBoardSize()
 BOARD_SCALE = 0.8
 FRAME_WIDTH, FRAME_HEIGHT = int(float(BOARD_WIDTH) * BOARD_SCALE), int(float(BOARD_HEIGHT) * BOARD_SCALE) # final frame size
 
@@ -61,7 +62,7 @@ perspectiveTransformManager = PerspectiveTransformManager(BOARD_POINTS, FRAME_WI
 
 # Face Detector
 CASCADE = cv2.CascadeClassifier(MY_PATH + "AddOn/haarcascade_frontalface_default.xml")
-RESIZE_SCALE = 0.1
+RESIZE_SCALE = 0.1  # 0.1
 faceDetector = FaceDetector(CASCADE, RESIZE_SCALE)
 
 # Landmark Detector
@@ -78,7 +79,7 @@ EYE_POSITION_INDEXES = (
     0,  # Out side of right eye 
 )
 
-eyePositionCalculator = EyePositionCalculator(FRAME_WIDTH, FRAME_HEIGHT, BOARD_WIDTH, BOARD_HEIGHT, EYE_POSITION_INDEXES)
+eyePositionCalculator = EyePositionCalculator(FRAME_WIDTH, FRAME_HEIGHT, BOARD_WIDTH, BOARD_HEIGHT, EYE_POSITION_INDEXES, MY_PATH + "setting.ini")
 
 # Window
 mainWindowName = "main"
@@ -102,6 +103,13 @@ def publish(eyePosition):
 def mainLoop(eyePosition):
     global perspectiveTransformManager
     SHOW_RESULT = True
+
+    eyePositionOnBoard = [0, 0]
+
+    eyePositionList = []
+    measuredTime = 0
+    isMeasuring = True
+    originEyePosition = eyePositionCalculator.getOriginEyePosition()
 
     while True:
         # Read frame
@@ -145,20 +153,39 @@ def mainLoop(eyePosition):
 
             # Calculate eye position
             eyePositionOnBoard = eyePositionCalculator.calc(points, debugFrame=frame)
-            eyePosition[0] = eyePositionOnBoard[0]
-            eyePosition[1] = eyePositionOnBoard[1]
+            eyePosition[0] = eyePositionOnBoard[0] - originEyePosition[0]
+            eyePosition[1] = eyePositionOnBoard[1] - originEyePosition[1]
             # (eyeX, eyePositionY) = eyePositionOnBoard
             # eyePosition[0] = eyePositionX
             # eyePosition[1] = eyePositionY
             break
 
         # Draw board's edge
-        boardEdgeManager.drawBoardEnge(calFrame)
+        boardManager.drawBoardEnge(calFrame)
 
         # Update fps
         fpsManager.updateFps()
         fps = fpsManager.getFps()
         cv2.putText(frame, f"FPS: {fps}", (30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+
+        # Measure origin eye positions
+        if isMeasuring:
+            measuredTime += fpsManager.getDeltaTime()
+            eyePositionList.append(eyePositionOnBoard)
+
+            if measuredTime >= 3000:
+                result = np.array((0, 0));
+                for pos in eyePositionList:
+                    result += pos
+                result = result / np.array((len(eyePositionList), len(eyePositionList)))
+                
+                eyePositionCalculator.setOriginEyePosition(result)
+                originEyePosition = eyePositionCalculator.getOriginEyePosition()
+
+                isMeasuring = False
+                measuredTime = 0
+                eyePositionList.clear()
+
 
         # Show frame
         if SHOW_RESULT:
@@ -169,15 +196,29 @@ def mainLoop(eyePosition):
         
         # Key event
         if inputKey == ord('q'):
+            break;
+
+        elif inputKey == ord('p'):
             SHOW_RESULT = not SHOW_RESULT
 
         elif inputKey == ord('s'):
-            targetModeState = not boardEdgeManager.getSettingMode()
-            boardEdgeManager.setSettingMode(targetModeState)
+            targetModeState = not boardManager.getSettingMode()
+            boardManager.setSettingMode(targetModeState)
 
             if not targetModeState:
-                BOARD_POINTS = boardEdgeManager.getBoardEdgePostionArr()
+                BOARD_POINTS = boardManager.getBoardEdgePostionArr()
                 perspectiveTransformManager.setPoints(BOARD_POINTS)
+
+        elif inputKey == ord('e'):
+            isMeasuring = True
+
+        elif inputKey == ord('t'):
+            eyePositionCalculator.setOriginEyePosition(eyePositionOnBoard)
+            originEyePosition = eyePositionCalculator.getOriginEyePosition()
+
+        elif inputKey == ord('r'):
+            boardManager.pause()
+
                         
 
 os.system(f"v4l2-ctl -d {CAM_INDEX} --set-ctrl exposure_auto_priority=0")

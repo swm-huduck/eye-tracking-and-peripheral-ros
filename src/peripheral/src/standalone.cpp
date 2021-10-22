@@ -126,10 +126,6 @@ ros::Publisher kakao_talk_publisher;
 // Maximum time to wait for any single async process to timeout during initialization
 static const int kMaxAsyncInitTimeoutMS = 30 * 1000;
 
-//
-// Server data values
-//
-
 // The battery level ("battery/level") reported by the server (see Server.cpp)
 static uint8_t serverDataBatteryLevel = 78;
 
@@ -340,8 +336,49 @@ int dataSetter(const char *pName, const void *pData)
 		}
 
 		// TrunEvent
-		case 't':
+		case 'n': {
+			std::string s = serverDataTextString.substr(1, len);
+			std::string delimiter = "{]";
+
+			size_t pos = 0;
+			std::string token;
+			int idx = 0;
+
+			peripheral::navigation_turn_event event;
+			
+			while ((pos = s.find(delimiter)) != std::string::npos) {
+				token = s.substr(0, pos);
+				
+				if(idx == 0) {
+					event.next_turn_type = std::stoi(token);
+				}
+				else if(idx == 1) {
+					event.next_left_distance = std::stof(token);
+				}
+				else if(idx == 2) {
+					event.next_relational_position_x = std::stof(token);
+				}
+				else if(idx == 3) {
+					event.next_relational_position_y = std::stof(token);
+				}
+				else if(idx == 4) {
+					event.next_next_turn_type = std::stoi(token);
+				}
+				else if(idx == 5) {
+					event.next_next_left_distance = std::stof(token);
+				}
+				std::cout << idx;
+				idx++;
+				s.erase(0, pos + delimiter.length());
+			}
+
+			while (ros::ok()) {
+				navigation_turn_event_publisher.publish(event);
+				ros::spinOnce();
+				break;
+			}
 			break;
+		}
 
 		case 'p': {
 			int separatorIndex = serverDataTextString.find("{]");
@@ -390,7 +427,7 @@ int main(int argc, char **ppArgv)
 
 	ros::NodeHandle nh;
 
-	speed_publisher = nh.advertise<peripheral::speed>("spped", 1);
+	speed_publisher = nh.advertise<peripheral::speed>("speed", 1);
 	navigation_turn_event_publisher = nh.advertise<peripheral::navigation_turn_event>("navigation_turn_event", 1);
 	
 	setting_publisher = nh.advertise<peripheral::setting>("setting", 1);

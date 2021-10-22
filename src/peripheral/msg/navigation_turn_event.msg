@@ -1,1 +1,7 @@
-uint8 turn_type
+int16 next_turn_type
+float32 next_left_distance
+float32 next_relational_position_x
+float32 next_relational_position_y
+
+int16 next_next_turn_type
+float32 next_next_left_distance

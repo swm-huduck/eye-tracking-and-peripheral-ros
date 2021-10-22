@@ -14,7 +14,9 @@ void SpeedCallback(const peripheral::speed& data) {
 }
 
 void NavigationTurnEventCallback(const peripheral::navigation_turn_event& data) {
-    ROS_INFO("[NavigationTurnEventCallback]");
+    ROS_INFO("[NavigationTurnEventCallback] nextTurnType: %d, nextLeftDistanceM: %f, nextRelationalPosition: (%f, %f), nextNextTurnType: %d, nextNextLeftDistanceM: %f",
+        data.next_turn_type, data.next_left_distance, data.next_relational_position_x, data.next_relational_position_y, data.next_next_turn_type, data.next_next_left_distance
+    );
 }
 
 void SettingCallback(const peripheral::setting& data) {
@@ -34,7 +36,7 @@ void KakaoTalkCallback(const peripheral::kakao_talk& data) {
 }
 
 void EyePositionCallback(const eye_tracking::eye_position& data) {
-    ROS_INFO("[EyePositionCallback] position: (%d, %d)", data.x, data.y);
+    // ROS_INFO("[EyePositionCallback] position: (%d, %d)", data.x, data.y);
 }
 
 int main(int argc, char **argv) {

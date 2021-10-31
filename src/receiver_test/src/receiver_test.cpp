@@ -10,7 +10,7 @@
 #include "eye_tracking/eye_position.h"
 
 void SpeedCallback(const peripheral::speed& data) {
-    ROS_INFO("[SpeedCallback] value: %d",  data.value);
+    ROS_INFO("[SpeedCallback] value: %f",  data.value);
 }
 
 void NavigationTurnEventCallback(const peripheral::navigation_turn_event& data) {

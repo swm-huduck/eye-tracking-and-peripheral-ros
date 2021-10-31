@@ -271,7 +271,7 @@ int dataSetter(const char *pName, const void *pData)
 		// Speed
 		case 's': {
 			std::string speed = serverDataTextString.substr(1, len - 1);
-			unsigned int speedValue = stoul(speed, nullptr, 0);
+			float speedValue = std::stof(speed);
 			LogDebug((std::string("Server data: (Speed) value: ") + speed).c_str());
 
 			while(ros::ok()) {

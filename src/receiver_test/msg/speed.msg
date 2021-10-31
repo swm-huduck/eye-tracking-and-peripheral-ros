@@ -1,1 +1,1 @@
-uint8 value
+float32 value

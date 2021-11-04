@@ -14,7 +14,11 @@
 
 ## 1.1. Data Interface Descriptions
 
-<img width="" src="">
+<img src="https://git.swmgit.org/swm-12/12_swm35/applicationreceiver/-/raw/readme/readme_src/Peripheral%20Data%20Interface%20Description.png">
+
+## 1.2. 시연
+
+[![시연 영상](http://img.youtube.com/vi/qQFVhA9BBH8/0.jpg)](https://youtu.be/qQFVhA9BBH8)
 
 # 2. 아이 트래킹 (Eye Tracking)
 
@@ -58,7 +62,7 @@ Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 �
 
 눈의 중심의 변화(px)에 픽셀 당 실제 거리를 곱하여 눈이 이동한 거리를 계산할 수 있다.
 
-## 2.3. 구동 예시
+## 2.3. 시연
 <img width="200px" src="https://git.swmgit.org/swm-12/12_swm35/application/-/raw/1-readme/readme/src/%EC%95%84%EC%9D%B4%ED%8A%B8%EB%9E%98%ED%82%B9%20%EA%B3%BC%EC%A0%95%EB%B3%84%20%EA%B2%B0%EA%B3%BC.png"/>
 
 ![](https://git.swmgit.org/swm-12/12_swm35/application/-/raw/1-readme/readme/src/%E1%84%8B%E1%85%A1%E1%84%8B%E1%85%B5%20%E1%84%90%E1%85%B3%E1%84%85%E1%85%A2%E1%84%8F%E1%85%B5%E1%86%BC%20%E1%84%89%E1%85%B5%E1%84%8B%E1%85%A7%E1%86%AB.mp4)

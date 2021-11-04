@@ -270,18 +270,47 @@ int dataSetter(const char *pName, const void *pData)
 		{
 		// Speed
 		case 's': {
-			std::string speed = serverDataTextString.substr(1, len - 1);
-			float speedValue = std::stof(speed);
-			LogDebug((std::string("Server data: (Speed) value: ") + speed).c_str());
+			// std::string speed = serverDataTextString.substr(1, len - 1);
+			// float speedValue = std::stof(speed);
+			// LogDebug((std::string("Server data: (Speed) value: ") + speed).c_str());
 
-			while(ros::ok()) {
-				peripheral::speed s;
-				s.value = speedValue;
-				speed_publisher.publish(s);
+			// while(ros::ok()) {
+			// 	peripheral::speed s;
+			// 	s.value = speedValue;
+			// 	speed_publisher.publish(s);
+			// 	ros::spinOnce();
+			// 	break;
+			// }
+
+			// 
+			std::string s = serverDataTextString.substr(1, len);
+			std::string delimiter = "{]";
+
+			size_t pos = 0;
+			std::string token;
+			int idx = 0;
+
+			peripheral::speed speed;
+			
+			while ((pos = s.find(delimiter)) != std::string::npos) {
+				token = s.substr(0, pos);
+				
+				if(idx == 0) {
+					speed.value = std::stof(token);
+				}
+				else if(idx == 1) {
+					speed.time = token;
+				}
+
+				idx++;
+				s.erase(0, pos + delimiter.length());
+			}
+
+			while (ros::ok()) {
+				speed_publisher.publish(speed);
 				ros::spinOnce();
 				break;
 			}
-			
 			break;
 		}
 

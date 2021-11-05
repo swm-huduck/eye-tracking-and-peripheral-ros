@@ -2,7 +2,8 @@
 
 본 저장소는 ROS(Robot Operating System)위에서 **BLE 페리페럴**과 **아이 트래킹** 부분이 통합된 저장소입니다.
 
-아이 트래킹은 아래의 저장소에서 개발된 후, 이곳에서 통합되었습니다.
+아이 트래킹은 아래의 저장소에서 개발된 후, 이곳에서 통합되었습니다.<br/>
+(readme는 본 저장소가 최신이므로 아래의 저장소 readme는 확인하지 않으셔도 됩니다.)
 
 [HUDuck 아이 트래킹 바로가기 - GitLab](https://git.swmgit.org/swm-12/12_swm35/eye-tracking)
 

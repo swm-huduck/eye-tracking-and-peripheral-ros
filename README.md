@@ -8,15 +8,42 @@
 
 # 1. BLE 페리페럴 (Bluetooth Low Energy Peripheral)
 
-사용자 스마트폰과 통신을 위해 HUD 디바이스에 BLE(Bluetooth Low Energy) Peripheral 역할을 부여하였다.
+사용자 스마트폰과 통신을 위해 HUD 디바이스에 BLE(Bluetooth Low Energy) Peripheral 역할을 부여하였습니다.
 
-스마트폰에서 블루투스를 통해 넘어온 데이터는 가공되어 ROS상의 Subscriber에게 줄 수 있는 형태의 Message로 전달된다.
+스마트폰에서 블루투스를 통해 넘어온 데이터는 가공되어 ROS상의 Subscriber에게 줄 수 있는 형태의 Message로 전달됩니다.
 
 ## 1.1. Data Interface Descriptions
 
 <img src="https://git.swmgit.org/swm-12/12_swm35/applicationreceiver/-/raw/readme/readme_src/Peripheral%20Data%20Interface%20Description.png">
 
-## 1.2. 시연 영상
+## 1.2. 실행 환경 구성
+
+### 1.2.1. 블루투스 설정값 변경
+
+아래의 명령어를 사용하여 블루투스 통신에 필수적인 기능을 켜줘야 합니다.
+
+```
+sudo btmgmt -i hci0 power off;
+
+sudo btmgmt -i hci0 bredr off;
+sudo btmgmt -i hci0 privacy off;
+sudo btmgmt -i hci0 hs off;
+sudo btmgmt -i hci0 sc off;
+sudo btmgmt -i hci0 ssp off;
+sudo btmgmt -i hci0 linksec off;
+sudo btmgmt -i hci0 pairable off;
+sudo btmgmt -i hci0 fast-conn off;
+sudo btmgmt -i hci0 bondable off;
+
+sudo btmgmt -i hci0 le on;
+sudo btmgmt -i hci0 advertising on;
+sudo btmgmt -i hci0 connectable on;
+sudo btmgmt -i hci0 discov on;
+
+sudo btmgmt -i hci0 power on;
+```
+
+## 1.3. 시연 영상
 
 [![시연 영상](http://img.youtube.com/vi/qQFVhA9BBH8/0.jpg)](https://youtu.be/qQFVhA9BBH8)
 
@@ -40,28 +67,32 @@ HUDuck의 HUD는 아이 트래킹을 지원합니다.
 
 원근 변환을 통해 운전자를 정면에서 보는 시점으로 전환합니다.
 
-캘리브레이션 과정에서 사용된 판의 정확한 크기를 알고 있기 때문에, 픽셀 당 실제 거리를 알 수 있다.
+캘리브레이션 과정에서 사용된 판의 정확한 크기를 알고 있기 때문에, 픽셀 당 실제 거리를 알 수 있습니다.
 
 ### 2.2.2. 얼굴 인식
 
-우선, 영상을 회색조로 변환 및 크기 축소(1/10 크기)를 거친다.
+우선, 영상을 회색조로 변환 및 크기 축소(1/10 크기)를 거칩니다.
 
-Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 인식한다.
+Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 인식합니다.
 
 ### 2.2.3. 얼굴 특징점 추출
 
-원본 크기의 회색조 영상에서 구해진 얼굴 영역을 기반으로 5개의 얼굴 특징점을 추출한다.
+원본 크기의 회색조 영상에서 구해진 얼굴 영역을 기반으로 5개의 얼굴 특징점을 추출합니다.
 
-5개의 특징점 추출은 일반적으로 사용되는 68개의 특징점 추출보다 약 8~10% 더 빠른 처리 속도를 보인다.
+5개의 특징점 추출은 일반적으로 사용되는 68개의 특징점 추출보다 약 8~10% 더 빠른 처리 속도를 보입니다.
 
 ### 2.2.4. 눈의 중심 지정
 
-특징점 중 눈의 시작점과 끝점을 연결하고, 이 선의 중간을 눈의 중심으로 정의한다.
+특징점 중 눈의 시작점과 끝점을 연결하고, 이 선의 중간을 눈의 중심으로 정의합니다.
 
 ### 2.2.5 눈 위치 변화 계산
 
-눈의 중심의 변화(px)에 픽셀 당 실제 거리를 곱하여 눈이 이동한 거리를 계산할 수 있다.
+눈의 중심의 변화(px)에 픽셀 당 실제 거리를 곱하여 눈이 이동한 거리를 계산할 수 있습니다.
 
 ## 2.3. 시연 영상
 
-[![시연 영상](http://img.youtube.com/vi/qQFVhA9BBH8/0.jpg)](https://youtu.be/qQFVhA9BBH8)
+[![시연 영상](http://img.youtube.com/vi/znCwhjIjWtA/0.jpg)](https://youtu.be/znCwhjIjWtA)
+
+# 3. 프로젝트 시작하기
+
+ 프로젝트 폴더 최상위에 있는 `start.sh` 파일을 실행하면 자동으로 블루투스 설정과 노드가 실행됩니다.

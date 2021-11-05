@@ -91,7 +91,7 @@ Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 �
 
 ## 2.3. 시연 영상
 
-[![시연 영상](http://img.youtube.com/vi/znCwhjIjWtA/0.jpg)](https://youtu.be/znCwhjIjWtA)
+[![시연 영상](http://img.youtube.com/vi/9YfRtpptQkw/0.jpg)](https://youtu.be/9YfRtpptQkw)
 
 # 3. 프로젝트 시작하기
 

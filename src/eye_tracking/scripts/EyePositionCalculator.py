@@ -18,29 +18,28 @@ class EyePositionCalculator:
     def _readIniFile(self):
         self._config.read(self._iniFilePath)
 
-        origin_eye_position = self._config["origin_eye_position"]
-        self._origin_eye_position_x = int(origin_eye_position["x"])
-        self._origin_eye_position_y = int(origin_eye_position["y"])
+        originEyePosition = self._config["origin_eye_position"]
+        self._originEyePositionX = int(originEyePosition["x"])
+        self._originEyePositionY = int(originEyePosition["y"])
 
     def _writeIniFile(self):
-        origin_eye_position = self._config["origin_eye_position"]
-        origin_eye_position["x"] = str(self._origin_eye_position_x)
-        origin_eye_position["y"] = str(self._origin_eye_position_y)
+        originEyePosition = self._config["origin_eye_position"]
+        originEyePosition["x"] = str(self._originEyePositionX)
+        originEyePosition["y"] = str(self._originEyePositionY)
 
         with open(self._iniFilePath, 'w') as  configfile:
             self._config.write(configfile)
 
     def getOriginEyePosition(self):
-        return numpy.array((self._origin_eye_position_x, self._origin_eye_position_y))
+        return numpy.array((self._originEyePositionX, self._originEyePositionY))
 
 
     def setOriginEyePosition(self, originEyePosition):
         if int(originEyePosition[0]) == 0 and int(originEyePosition[1]) == 0:
             return
 
-        origin_eye_position = self._config["origin_eye_position"]
-        self._origin_eye_position_x = int(round(originEyePosition[0], 0))
-        self._origin_eye_position_y = int(round(originEyePosition[1], 0))
+        self._originEyePositionX = int(round(originEyePosition[0], 0))
+        self._originEyePositionY = int(round(originEyePosition[1], 0))
 
         self._writeIniFile()
 
@@ -58,14 +57,20 @@ class EyePositionCalculator:
         virPos = (center[0], 0)
         horPos = (0, center[1])
 
-        cv2.line(frame, center, virPos, (0, 0, 255), 2)
-        cv2.line(frame, center, horPos, (0, 0, 255), 2)
+        cv2.circle(frame, center, 2, (255, 255, 255), 2)
 
-        virDist = round(distance[1] / 10, 1)
-        horDist = round(distance[0] / 10, 1)
+        originEyePosition = (int(self._originEyePositionX  / self._boardPerFrame), int(self._originEyePositionY / self._boardPerFrame))
 
-        cv2.putText(frame, f"{virDist}cm", (virPos[0] + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0, 255), 2)
-        cv2.putText(frame, f"{horDist}cm", (30, horPos[1] + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0, 255), 2)
+        cv2.line(frame, originEyePosition, (center[0], originEyePosition[1]), (0, 0, 255), 2)
+        cv2.line(frame, originEyePosition, (originEyePosition[0], center[1]), (0, 0, 255), 2)
+
+        cv2.circle(frame, originEyePosition, 2, (0, 212, 255), 2)
+
+        virDist = round((distance[1] - self._originEyePositionY) / 10, 1)
+        horDist = round((distance[0] - self._originEyePositionX) / 10, 1)
+
+        cv2.putText(frame, f"{virDist}cm", (30, horPos[1] + 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0, 255), 2)
+        cv2.putText(frame, f"{horDist}cm", (virPos[0] + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0, 255), 2)
 
     def calc(self, points, debugFrame=None):
         leftEyeOutSidePos = points[self._eyePositionIndexes[0]]

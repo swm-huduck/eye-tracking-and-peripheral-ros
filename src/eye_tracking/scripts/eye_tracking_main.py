@@ -36,7 +36,7 @@ else:
     MY_PATH = "./"
     
 # Camera
-CAM_INDEX = 2
+CAM_INDEX = 0
 ORIGIN_FRAME_WIDTH, ORIGIN_FRAME_HEIGHT = 1280, 720
 TARGET_FPS = 60
 capture = cv2.VideoCapture(CAM_INDEX)
@@ -62,7 +62,7 @@ perspectiveTransformManager = PerspectiveTransformManager(BOARD_POINTS, FRAME_WI
 
 # Face Detector
 CASCADE = cv2.CascadeClassifier(MY_PATH + "AddOn/haarcascade_frontalface_default.xml")
-RESIZE_SCALE = 0.1  # 0.1
+RESIZE_SCALE = 0.2  # 0.1
 faceDetector = FaceDetector(CASCADE, RESIZE_SCALE)
 
 # Landmark Detector
@@ -104,7 +104,7 @@ def mainLoop(eyePosition):
     global perspectiveTransformManager
     SHOW_RESULT = True
 
-    eyePositionOnBoard = [0, 0]
+    eyePositionOnBoard = np.array((0, 0))
 
     eyePositionList = []
     measuredTime = 0

@@ -105,7 +105,11 @@ Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 �
 `e`: 기준 눈 위치 설정 (3초간 눈 위치 평균 값)<br/>
 `t`: 기준 눈 위치 설정 (현재 눈 위치)
 
-## 2.4. 시연 영상
+## 2.4. 시연 사진
+
+<img width="500px" src="https://git.swmgit.org/swm-12/12_swm35/applicationreceiver/-/raw/readme/readme_src/Eye%20Tracking%20Result.png">
+
+## 2.5. 시연 영상
 
 원근 변환부터 ROS 실행까지 모든 과정을 담은 시연 영상은 아래에서 보실 수 있습니다.
 

@@ -15,7 +15,7 @@
 
 ## 1.1. Data Interface Descriptions
 
-<img src="https://git.swmgit.org/swm-12/12_swm35/applicationreceiver/-/raw/readme/readme_src/Peripheral%20Data%20Interface%20Description.png">
+<img src="./readme_src/Peripheral%20Data%20Interface%20Description.png">
 
 ## 1.2. 실행 환경 구성
 
@@ -107,7 +107,7 @@ Haar Cascade 알고리즘을 사용하여 단순화된 영상에서 얼굴을 �
 
 ## 2.4. 시연 사진
 
-<img width="500px" src="https://git.swmgit.org/swm-12/12_swm35/applicationreceiver/-/raw/readme/readme_src/Eye%20Tracking%20Result.png">
+<img width="500px" src="./readme_src/Eye%20Tracking%20Result.png">
 
 시연 사진에 출력된 그래픽은 아래와 같은 의미를 가지고 있습니다.
 
